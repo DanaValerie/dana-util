@@ -10,8 +10,8 @@ import java.util.Set;
 
 public final class ClassUtil {
 
-    private static final Map<Class<?>, Class<?>> primitiveToBox;
-    private static final Map<Class<?>, Class<?>> boxToPrimitive;
+    private static final Map<Class<?>, Class<?>> _primitiveToBox;
+    private static final Map<Class<?>, Class<?>> _boxToPrimitive;
 
     static {
         final Map<Class<?>, Class<?>> p2b = new LinkedHashMap<>();
@@ -25,8 +25,8 @@ public final class ClassUtil {
         addPrimitiveType(p2b, b2p, float.class, Float.class);
         addPrimitiveType(p2b, b2p, double.class, Double.class);
         addPrimitiveType(p2b, b2p, void.class, Void.class);
-        primitiveToBox = Collections.unmodifiableMap(p2b);
-        boxToPrimitive = Collections.unmodifiableMap(b2p);
+        _primitiveToBox = Collections.unmodifiableMap(p2b);
+        _boxToPrimitive = Collections.unmodifiableMap(b2p);
     }
 
     private ClassUtil() {
@@ -44,22 +44,22 @@ public final class ClassUtil {
 
     @Nonnull
     public static Class<?> box(@Nonnull final Class<?> javaClass) {
-        return primitiveToBox.getOrDefault(javaClass, javaClass);
+        return _primitiveToBox.getOrDefault(javaClass, javaClass);
     }
 
     @Nonnull
     public static Class<?> unbox(@Nonnull final Class<?> javaClass) {
-        return boxToPrimitive.getOrDefault(javaClass, javaClass);
+        return _boxToPrimitive.getOrDefault(javaClass, javaClass);
     }
 
     @Nonnull
     public static Set<Class<?>> getPrimitiveTypes() {
-        return primitiveToBox.keySet();
+        return _primitiveToBox.keySet();
     }
 
     @Nonnull
     public static Set<Class<?>> getBoxTypes() {
-        return boxToPrimitive.keySet();
+        return _boxToPrimitive.keySet();
     }
 
     @Nonnull

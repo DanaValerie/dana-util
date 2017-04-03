@@ -6,28 +6,28 @@ import com.danavalerie.util.stream.XSupplier;
 import javax.annotation.Nonnull;
 
 /**
- * A thread-safe, lazily initialized value.
+ * A thread-safe, lazily initialized _value.
  */
 public final class LazyVar<T> {
 
-    private final Object lock = new Object();
-    private XSupplier<T> init;
-    private volatile Ref<T> value;
+    private final Object _lock = new Object();
+    private XSupplier<T> _init;
+    private volatile Ref<T> _value;
 
     private LazyVar(@Nonnull final XSupplier<T> init) {
-        this.init = init;
+        _init = init;
     }
 
     public T get() {
         // See https://en.wikipedia.org/wiki/Double-checked_locking#Usage_in_Java
-        Ref<T> result = value;
+        Ref<T> result = _value;
         if (result == null) {
-            synchronized (lock) {
-                result = value;
+            synchronized (_lock) {
+                result = _value;
                 if (result == null) {
                     try {
-                        value = result = new Ref<>(init.get());
-                        init = null; // gc
+                        _value = result = new Ref<>(_init.get());
+                        _init = null; // gc
                     } catch (final Throwable t) {
                         throw ExceptionUtil.throwException(t);
                     }

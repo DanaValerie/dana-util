@@ -7,12 +7,12 @@ public final class Pair<F, S> implements Serializable {
 
     private static final long serialVersionUID = -6984815809160635589L;
 
-    private final F first;
-    private final S second;
+    private final F _first;
+    private final S _second;
 
     public Pair(final F first, final S second) {
-        this.first = first;
-        this.second = second;
+        _first = first;
+        _second = second;
     }
 
     public static <F, S> Pair<F, S> of(final F first, final S second) {
@@ -20,11 +20,11 @@ public final class Pair<F, S> implements Serializable {
     }
 
     public F getFirst() {
-        return first;
+        return _first;
     }
 
     public S getSecond() {
-        return second;
+        return _second;
     }
 
     @Override
@@ -36,12 +36,12 @@ public final class Pair<F, S> implements Serializable {
             return false;
         }
         final Pair<?, ?> other = (Pair<?, ?>) o;
-        return Objects.equals(first, other.first) && Objects.equals(second, other.second);
+        return Objects.equals(_first, other._first) && Objects.equals(_second, other._second);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(first) + 31 * Objects.hashCode(second);
+        return Objects.hashCode(_first) + 31 * Objects.hashCode(_second);
     }
 
 }

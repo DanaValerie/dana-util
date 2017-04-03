@@ -1,7 +1,7 @@
 package com.danavalerie.util.reflect;
 
-import com.danavalerie.util.stream.StreamUtil;
 import com.danavalerie.util.ref.LazyVar;
+import com.danavalerie.util.stream.StreamUtil;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 public final class ClasspathUtil {
 
-    private static final LazyVar<List<URI>> systemClassPathEntries = LazyVar.of(
+    private static final LazyVar<List<URI>> _systemClassPathEntries = LazyVar.of(
             () -> Arrays
                     .stream(System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator)))
                     .map(str -> Paths.get(str).toUri())
@@ -105,7 +105,7 @@ public final class ClasspathUtil {
     }
 
     public static List<URI> getSystemClassPathEntries() {
-        return systemClassPathEntries.get();
+        return _systemClassPathEntries.get();
     }
 
 }

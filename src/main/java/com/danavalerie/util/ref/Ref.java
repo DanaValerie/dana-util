@@ -5,22 +5,22 @@ package com.danavalerie.util.ref;
  */
 public final class Ref<T> {
 
-    private T value;
+    private T _value;
 
     public Ref() {
         this(null);
     }
 
     public Ref(final T initialValue) {
-        value = initialValue;
+        _value = initialValue;
     }
 
     public T get() {
-        return value;
+        return _value;
     }
 
     public void set(final T value) {
-        this.value = value;
+        _value = value;
     }
 
     public static <T> Ref<T> of(final T value) {
