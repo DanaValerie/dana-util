@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -36,6 +37,21 @@ public final class ClasspathUtil {
      */
     @Nonnull
     public static List<String> findAllClasses(@Nonnull final URI classpathEntry) throws IOException {
+        return Collections.unmodifiableList(
+                findAllResources(classpathEntry)
+                .stream()
+                .filter(x -> x.endsWith(".class"))
+                .map(ClasspathUtil::removeDotClass)
+                .map(x -> x.replace('/', '.'))
+                .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     * Finds all resources at specified classpath entry location.
+     */
+    @Nonnull
+    public static List<String> findAllResources(@Nonnull final URI classpathEntry) throws IOException {
         if (!classpathEntry.getScheme().equals("file")) {
             throw new IllegalArgumentException("Only 'file' URLs are supported");
         }
@@ -43,29 +59,30 @@ public final class ClasspathUtil {
         if (!Files.exists(dirOrJarFile)) {
             throw new FileNotFoundException(dirOrJarFile.toString());
         }
-        return Files.isDirectory(dirOrJarFile)
-                ? findAllClassesInDirectory(dirOrJarFile)
-                : findAllClassesInJarFile(dirOrJarFile);
+        return Collections.unmodifiableList(
+                Files.isDirectory(dirOrJarFile)
+                ? findAllResourcesInDirectory(dirOrJarFile)
+                : findAllResourcesInJarFile(dirOrJarFile)
+        );
     }
 
     /**
      * Finds all classes in the specified directory (should be a valid classpath root).
      */
     @Nonnull
-    private static List<String> findAllClassesInDirectory(
+    private static List<String> findAllResourcesInDirectory(
             final Path codebase
     ) throws IOException {
         final List<String> allClasses = new ArrayList<>();
         try (Stream<Path> allFiles = Files.walk(codebase)) {
             allFiles
-                    .filter(path -> path.getFileName().toString().endsWith(".class"))
+                    .filter(x -> !Files.isDirectory(x))
                     .map(codebase::relativize)
                     .map(relativePath ->
                             StreamUtil.from(relativePath.iterator())
                                     .map(Path::toString)
-                                    .collect(Collectors.joining("."))
+                                    .collect(Collectors.joining("/"))
                     )
-                    .map(ClasspathUtil::removeDotClass)
                     .forEach(allClasses::add);
         }
         return allClasses;
@@ -75,22 +92,19 @@ public final class ClasspathUtil {
      * Finds all classes in the specified Jar file.
      */
     @Nonnull
-    private static List<String> findAllClassesInJarFile(
+    private static List<String> findAllResourcesInJarFile(
             final Path jarFile
     ) throws IOException {
-        final List<String> allClasses = new ArrayList<>();
+        final List<String> allResources = new ArrayList<>();
         try (JarInputStream in = new JarInputStream(Files.newInputStream(jarFile))) {
             JarEntry jarEntry;
             while ((jarEntry = (JarEntry) in.getNextEntry()) != null) {
-                if (jarEntry.getName().endsWith(".class")) {
-                    final String className = removeDotClass(
-                            jarEntry.getName().replace('/', '.')
-                    );
-                    allClasses.add(className);
+                if (! jarEntry.isDirectory()) {
+                    allResources.add(jarEntry.getName());
                 }
             }
         }
-        return allClasses;
+        return allResources;
     }
 
     /**

@@ -50,4 +50,41 @@ public class ClasspathUtilTest {
         }
     }
 
+    @Test
+    public void findAllResources_Directory() throws Exception {
+        final Path tempDirectory = Files.createTempDirectory("temp-");
+        try {
+            final Path fooDirectory = tempDirectory.resolve("foo");
+            Files.createDirectory(fooDirectory);
+            final Path barClass = fooDirectory.resolve("Bar.class");
+            Files.write(barClass, new byte[100]);
+            final Path barDirectory = fooDirectory.resolve("bar");
+            Files.createDirectory(barDirectory);
+            final Path bazClass = barDirectory.resolve("Baz.class");
+            Files.write(bazClass, new byte[100]);
+            final List<String> actual = ClasspathUtil.findAllResources(tempDirectory.toUri());
+            assertThat(actual).containsExactlyInAnyOrder("foo/Bar.class", "foo/bar/Baz.class");
+        } finally {
+            FileUtil.deleteRecursively(tempDirectory);
+        }
+    }
+
+    @Test
+    public void findAllResources_JarFile() throws Exception {
+        final Path tempDirectory = Files.createTempDirectory("temp-");
+        try {
+            final Path jarPath = tempDirectory.resolve("temp.jar");
+            final JarOutputStream out = new JarOutputStream(Files.newOutputStream(jarPath));
+            out.putNextEntry(new JarEntry("foo/Bar.class"));
+            out.closeEntry();
+            out.putNextEntry(new JarEntry("foo/bar/Baz.class"));
+            out.closeEntry();
+            out.close();
+            final List<String> actual = ClasspathUtil.findAllResources(jarPath.toUri());
+            assertThat(actual).containsExactlyInAnyOrder("foo/Bar.class", "foo/bar/Baz.class");
+        } finally {
+            FileUtil.deleteRecursively(tempDirectory);
+        }
+    }
+
 }
