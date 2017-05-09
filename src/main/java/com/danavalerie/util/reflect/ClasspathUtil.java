@@ -1,33 +1,41 @@
 package com.danavalerie.util.reflect;
 
 import com.danavalerie.util.ref.LazyVar;
-import com.danavalerie.util.stream.StreamUtil;
+import com.danavalerie.util.stream.XSupplier;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class ClasspathUtil {
 
     private static final LazyVar<List<URI>> _systemClassPathEntries = LazyVar.of(
-            () -> Arrays
-                    .stream(System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator)))
-                    .map(str -> Paths.get(str).toUri())
-                    .collect(Collectors.toList()));
+            new XSupplier<List<URI>>() {
+                @Override
+                public List<URI> get() throws Throwable {
+                    final String[] cpes = System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator));
+                    final List<URI> ret = new ArrayList<>(cpes.length);
+                    for (final String cpe : cpes) {
+                        final URI uri = Paths.get(cpe).toUri();
+                        ret.add(uri);
+                    }
+                    return ret;
+                }
+            });
 
     private ClasspathUtil() {
     }
@@ -37,14 +45,16 @@ public final class ClasspathUtil {
      */
     @Nonnull
     public static List<String> findAllClasses(@Nonnull final URI classpathEntry) throws IOException {
-        return Collections.unmodifiableList(
-                findAllResources(classpathEntry)
-                .stream()
-                .filter(x -> x.endsWith(".class"))
-                .map(ClasspathUtil::removeDotClass)
-                .map(x -> x.replace('/', '.'))
-                .collect(Collectors.toList())
-        );
+        final List<String> results = new ArrayList<>();
+        for (String resourceName : findAllResources(classpathEntry)) {
+            if (!resourceName.endsWith(".class")) {
+                continue;
+            }
+            resourceName = removeDotClass(resourceName);
+            resourceName = resourceName.replace('/', '.');
+            results.add(resourceName);
+        }
+        return results;
     }
 
     /**
@@ -70,21 +80,23 @@ public final class ClasspathUtil {
      * Finds all classes in the specified directory (should be a valid classpath root).
      */
     @Nonnull
-    private static List<String> findAllResourcesInDirectory(
-            final Path codebase
-    ) throws IOException {
+    private static List<String> findAllResourcesInDirectory(final Path codebase) throws IOException {
         final List<String> allClasses = new ArrayList<>();
-        try (Stream<Path> allFiles = Files.walk(codebase)) {
-            allFiles
-                    .filter(x -> !Files.isDirectory(x))
-                    .map(codebase::relativize)
-                    .map(relativePath ->
-                            StreamUtil.from(relativePath.iterator())
-                                    .map(Path::toString)
-                                    .collect(Collectors.joining("/"))
-                    )
-                    .forEach(allClasses::add);
-        }
+        Files.walkFileTree(codebase, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                final Path relativePath = codebase.relativize(file);
+                final StringBuilder sb = new StringBuilder();
+                for (final Path part : relativePath) {
+                    if (sb.length() > 0) {
+                        sb.append('/');
+                    }
+                    sb.append(part);
+                }
+                allClasses.add(sb.toString());
+                return FileVisitResult.CONTINUE;
+            }
+        });
         return allClasses;
     }
 

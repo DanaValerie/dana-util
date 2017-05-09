@@ -44,7 +44,7 @@ public final class ExceptionUtil {
         final ClassWriter cw = new ClassWriter(0);
         final String internalName = RETHROWER_GENERATED_ASM_TYPE.getInternalName();
         cw.visit(
-                Opcodes.V1_8,
+                Opcodes.V1_7,
                 ACC_PUBLIC,
                 internalName,
                 null,
@@ -67,7 +67,7 @@ public final class ExceptionUtil {
                     Type.getInternalName(Object.class),
                     "<init>",
                     "()V",
-                    true
+                    false
             );
             mv.visitInsn(Opcodes.RETURN);
             mv.visitEnd();

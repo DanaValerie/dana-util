@@ -3,6 +3,7 @@ package com.danavalerie.util;
 import com.danavalerie.util.exceptions.ExceptionUtil;
 import com.danavalerie.util.stream.XRunnable;
 import com.danavalerie.util.stream.XSupplier;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,7 +15,13 @@ public class ExceptionUtilTest {
     @Test
     public void testThrowException() throws Exception {
         assertThatThrownBy(
-                () -> ExceptionUtil.throwException(new IOException("message"))
+                new ThrowableAssert.ThrowingCallable() {
+                    @Override
+                    public void call() throws Throwable {
+                        //noinspection ThrowableNotThrown
+                        ExceptionUtil.throwException(new IOException("message"));
+                    }
+                }
         )
                 .isOfAnyClassIn(IOException.class)
                 .hasMessage("message");
@@ -22,20 +29,36 @@ public class ExceptionUtilTest {
 
     @Test
     public void testUncheck_XSupplier() throws Exception {
-        final XSupplier<Void> supplier = () -> {
-            throw new IOException("message");
+        final XSupplier<Void> supplier = new XSupplier<Void>() {
+            @Override
+            public Void get() throws Throwable {
+                throw new IOException("message");
+            }
         };
-        assertThatThrownBy(() -> ExceptionUtil.uncheck(supplier))
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                ExceptionUtil.uncheck(supplier);
+            }
+        })
                 .isOfAnyClassIn(IOException.class)
                 .hasMessage("message");
     }
 
     @Test
     public void testUncheck_XRunnable() throws Exception {
-        final XRunnable runnable = () -> {
-            throw new IOException("message");
+        final XRunnable runnable = new XRunnable() {
+            @Override
+            public void run() throws Throwable {
+                throw new IOException("message");
+            }
         };
-        assertThatThrownBy(() -> ExceptionUtil.uncheck(runnable))
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                ExceptionUtil.uncheck(runnable);
+            }
+        })
                 .isOfAnyClassIn(IOException.class)
                 .hasMessage("message");
     }

@@ -44,12 +44,14 @@ public final class ClassUtil {
 
     @Nonnull
     public static Class<?> box(@Nonnull final Class<?> javaClass) {
-        return _primitiveToBox.getOrDefault(javaClass, javaClass);
+        final Class<?> result = _primitiveToBox.get(javaClass);
+        return result == null ? javaClass : result;
     }
 
     @Nonnull
     public static Class<?> unbox(@Nonnull final Class<?> javaClass) {
-        return _boxToPrimitive.getOrDefault(javaClass, javaClass);
+        final Class<?> result = _boxToPrimitive.get(javaClass);
+        return result == null ? javaClass : result;
     }
 
     @Nonnull
