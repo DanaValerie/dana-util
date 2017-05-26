@@ -44,4 +44,10 @@ public final class Pair<F, S> implements Serializable {
         return Objects.hashCode(_first) + 31 * Objects.hashCode(_second);
     }
 
+    @Override
+    public String toString()
+    {
+        return "[" + _first + ", " + _second + "]";
+    }
+
 }

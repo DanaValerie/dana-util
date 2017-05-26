@@ -34,4 +34,11 @@ public class PairTest {
         assertThat(pair1).isNotEqualTo(pair3);
     }
 
+    @Test
+    public void testToString() {
+        assertThat(new Pair<>("foo", "bar").toString()).isEqualTo("[foo, bar]");
+        assertThat(new Pair<>(null, "bar").toString()).isEqualTo("[null, bar]");
+        assertThat(new Pair<>("foo", null).toString()).isEqualTo("[foo, null]");
+        assertThat(new Pair<>(null, null).toString()).isEqualTo("[null, null]");
+    }
 }
