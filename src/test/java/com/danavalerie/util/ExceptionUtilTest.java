@@ -7,7 +7,9 @@ import org.assertj.core.api.ThrowableAssert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ExceptionUtilTest {
@@ -61,6 +63,16 @@ public class ExceptionUtilTest {
         })
                 .isOfAnyClassIn(IOException.class)
                 .hasMessage("message");
+    }
+
+    @Test
+    public void testGetStackTraceAsString() {
+        assertThat(
+                ExceptionUtil.getStackTraceAsString(new ConnectException("foo"))
+        ).startsWith(
+                "java.net.ConnectException: foo\n\tat com.danavalerie.util.ExceptionUtilTest" +
+                        ".testGetStackTraceAsString(ExceptionUtilTest.java:"
+        );
     }
 
 }

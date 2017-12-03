@@ -7,6 +7,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.SecureClassLoader;
 import java.util.UUID;
 
@@ -111,7 +113,15 @@ public final class ExceptionUtil {
         }
     }
 
+    public static String getStackTraceAsString(final Throwable t) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        t.printStackTrace(pw);
+        return sw.toString();
+    }
+
     public interface ExceptionThrower {
         void throwException(Throwable t);
     }
+
 }
